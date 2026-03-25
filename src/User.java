@@ -19,7 +19,8 @@ public class User {
             System.out.println(s.getRingkasan());
         }
     }
+
     public ArrayList<SesiTidur> getDaftarSesi() {
-    return daftarSesi;
-}
+        return daftarSesi;
+    }
 }

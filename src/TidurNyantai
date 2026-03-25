@@ -1,0 +1,13 @@
+public class TidurNyantai extends SesiTidur {
+
+    public TidurNyantai(int durasi) {
+        super("Tidur Nyantai", durasi);
+    }
+
+    @Override
+    public int hitungSkor() {
+        if (durasi >= 10 && durasi <= 30) return 100;
+        else if (durasi <= 60) return 70;
+        else return 40;
+    }
+}

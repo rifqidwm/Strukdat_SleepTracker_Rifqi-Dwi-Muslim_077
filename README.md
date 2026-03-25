@@ -1,4 +1,4 @@
-# Sleep Habit Tracker 😴
+# Sleep Habit Tracker 
 **Sistem Manajemen Kebiasaan Tidur berbasis OOP - Java**
 
 ---
@@ -220,6 +220,7 @@ public class SaranTidur {
 ---
 
 ## Screenshot Output
+Ouput Skor Lumayan
 
 ```
 Masukkan nama kamu: Rifqi

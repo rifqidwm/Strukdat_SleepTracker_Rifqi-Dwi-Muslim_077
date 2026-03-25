@@ -1,19 +1,19 @@
-# Sleep Habit Tracker 
+# Sleep Habit Tracker
 **Sistem Manajemen Kebiasaan Tidur berbasis OOP - Java**
 
 ---
 
 ## Deskripsi Kasus
 
-Hampir semua orang punya masalah tidur — ada yang sering begadang, ada yang tidur siang terlalu lama, ada juga yang power nap-nya malah jadi tidur 3 jam. Tapi jarang ada yang sadar seberapa berantakan pola tidurnya.
+Hampir semua orang punya masalah tidur, ada yang sering begadang, ada yang tidur siang terlalu lama, ada juga yang rebahan santai malah jadi tidur 3 jam. Tapi jarang ada yang sadar seberapa berantakan pola tidurnya.
 
-Program ini mensimulasikan **Sleep Habit Tracker**: sebuah sistem yang mencatat sesi-sesi tidur seseorang, mengevaluasi kualitasnya lewat sistem skor, lalu memberikan rekomendasi berdasarkan rata-rata skor keseluruhan.
+Program ini mensimulasikan **Sleep Habit Tracker**, sebuah sistem yang mencatat sesi-sesi tidur seseorang, mengevaluasi kualitasnya lewat sistem skor, lalu memberikan rekomendasi berdasarkan rata rata skor keseluruhan.
 
 **Alur program:**
 1. User memasukkan nama
 2. User mencatat 3 sesi tidur (jenis + durasi)
 3. Sistem menampilkan laporan per sesi beserta skor dan keterangan
-4. Sistem memberi rekomendasi akhir berdasarkan rata-rata skor
+4. Sistem memberi rekomendasi akhir berdasarkan rata rata skor
 
 ---
 
@@ -21,8 +21,37 @@ Program ini mensimulasikan **Sleep Habit Tracker**: sebuah sistem yang mencatat 
 
 ```mermaid
 classDiagram
+    SesiTidur <|-- TidurMalam
+    SesiTidur <|-- TidurSiang
+    SesiTidur <|-- TidurNyantai
     User "1" o-- "0..*" SesiTidur : memiliki
     SaranTidur ..> User : menganalisis
+
+    class SesiTidur {
+        <<Abstract>>
+        #jenis: String
+        #durasi: int
+        +SesiTidur(jenis: String, durasi: int)
+        +getDurasi() int
+        +getJenis() String
+        +hitungSkor() int*
+        +getRingkasan() String
+    }
+
+    class TidurMalam {
+        +TidurMalam(durasi: int)
+        +hitungSkor() int
+    }
+
+    class TidurSiang {
+        +TidurSiang(durasi: int)
+        +hitungSkor() int
+    }
+
+    class TidurNyantai {
+        +TidurNyantai(durasi: int)
+        +hitungSkor() int
+    }
 
     class User {
         -nama: String
@@ -33,75 +62,109 @@ classDiagram
         +getDaftarSesi() ArrayList~SesiTidur~
     }
 
-    class SesiTidur {
-        -jenis: String
-        -durasi: int
-        +SesiTidur(jenis: String, durasi: int)
-        +getDurasi() int
-        +getJenis() String
-        +hitungSkor() int
-        +getRingkasan() String
-    }
-
     class SaranTidur {
         +beriSaran(user: User) void$
     }
 ```
 
 **Penjelasan relasi:**
-- `User o-- SesiTidur` → **Aggregation**: User memiliki daftar sesi tidur, tapi objek `SesiTidur` dibuat di luar `User` (di `Main`) sehingga bisa berdiri sendiri.
-- `SaranTidur ..> User` → **Dependency**: `SaranTidur` bergantung pada `User` hanya saat method `beriSaran()` dipanggil, bukan menyimpannya sebagai atribut.
+- `SesiTidur <|-- TidurMalam/TidurSiang/TidurNyantai` → **Inheritance**: ketiga subclass mewarisi atribut dan method dari `SesiTidur`
+- `User o-- SesiTidur` → **Aggregation**: User memiliki daftar sesi tidur, tapi objek `SesiTidur` dibuat di luar `User` sehingga bisa berdiri sendiri
+- `SaranTidur ..> User` → **Dependency**: `SaranTidur` bergantung pada `User` hanya saat method `beriSaran()` dipanggil
 
 ---
 
 ## Kode Program Java
 
-### `Main.java`
+### `SesiTidur.java`
 ```java
-import java.util.Scanner;
+public abstract class SesiTidur {
+    protected String jenis;
+    protected int durasi;
 
-public class Main {
-    public static void main(String[] args) {
-        Scanner input = new Scanner(System.in);
+    public SesiTidur(String jenis, int durasi) {
+        this.jenis = jenis;
+        this.durasi = durasi;
+    }
 
-        System.out.print("Masukkan nama kamu: ");
-        String nama = input.nextLine();
+    public int getDurasi() {
+        return durasi;
+    }
 
-        User user = new User(nama);
+    public String getJenis() {
+        return jenis;
+    }
 
-        for (int i = 1; i <= 3; i++) {
-            System.out.println("\nSesi ke-" + i);
+    public abstract int hitungSkor();
 
-            System.out.println("Pilih jenis tidur:");
-            System.out.println("1. Tidur Siang");
-            System.out.println("2. Tidur Malam");
-            System.out.println("3. Tidur Nyantai");
+    public String getRingkasan() {
+        int skor = hitungSkor();
+        String keterangan = "";
 
-            System.out.print("Pilihan (1/2/3): ");
-            int pilihan = input.nextInt();
-            input.nextLine();
-
-            String jenis = "";
-            if (pilihan == 1) jenis = "Tidur Siang";
-            else if (pilihan == 2) jenis = "Tidur Malam";
-            else if (pilihan == 3) jenis = "Tidur Nyantai";
-            else jenis = "Tidak Diketahui";
-
-            System.out.print("Durasi (menit): ");
-            int durasi = input.nextInt();
-            input.nextLine();
-
-            SesiTidur sesi = new SesiTidur(jenis, durasi);
-            user.tambahSesi(sesi);
+        if (skor == 100) {
+            keterangan = "Udah ideal, badan kamu dapet recovery yang baik.";
+        } else if (skor >= 80) {
+            keterangan = "Lumayan oke, tinggal dibenerin dikit.";
+        } else if (skor >= 60) {
+            keterangan = "Masih kurang, coba benerin waktu tidur lagi ya.";
+        } else {
+            keterangan = "Kurang banget, hayoo tidur berlebihan maupun kekurangan ga baik yaa.";
         }
 
-        System.out.println("\n=====================");
-        user.tampilkanLaporan();
+        return jenis + " | " + durasi + " menit | Skor: " + skor + "\n " + keterangan;
+    }
+}
+```
 
-        System.out.println("\nRekomendasi:");
-        SaranTidur.beriSaran(user);
+### `TidurMalam.java`
+```java
+public class TidurMalam extends SesiTidur {
 
-        input.close();
+    public TidurMalam(int durasi) {
+        super("Tidur Malam", durasi);
+    }
+
+    @Override
+    public int hitungSkor() {
+        if (durasi >= 420 && durasi <= 540) return 100;
+        else if (durasi >= 360) return 80;
+        else if (durasi >= 180) return 60;
+        else return 30;
+    }
+}
+```
+
+### `TidurSiang.java`
+```java
+public class TidurSiang extends SesiTidur {
+
+    public TidurSiang(int durasi) {
+        super("Tidur Siang", durasi);
+    }
+
+    @Override
+    public int hitungSkor() {
+        if (durasi >= 420 && durasi <= 540) return 100;
+        else if (durasi >= 360) return 80;
+        else if (durasi >= 180) return 60;
+        else return 30;
+    }
+}
+```
+
+### `TidurNyantai.java`
+```java
+public class TidurNyantai extends SesiTidur {
+
+    public TidurNyantai(int durasi) {
+        super("Tidur Nyantai", durasi);
+    }
+
+    @Override
+    public int hitungSkor() {
+        if (durasi >= 10 && durasi <= 30) return 100;
+        else if (durasi <= 60) return 70;
+        else return 40;
     }
 }
 ```
@@ -136,57 +199,6 @@ public class User {
 }
 ```
 
-### `SesiTidur.java`
-```java
-public class SesiTidur {
-    private String jenis;
-    private int durasi;
-
-    public SesiTidur(String jenis, int durasi) {
-        this.jenis = jenis;
-        this.durasi = durasi;
-    }
-
-    public int getDurasi() {
-        return durasi;
-    }
-
-    public String getJenis() {
-        return jenis;
-    }
-
-    public int hitungSkor() {
-        if (jenis.equalsIgnoreCase("Tidur Nyantai")) {
-            if (durasi >= 10 && durasi <= 30) return 100;
-            else if (durasi <= 60) return 70;
-            else return 40;
-        }
-
-        if (durasi >= 420 && durasi <= 540) return 100;
-        else if (durasi >= 360) return 80;
-        else if (durasi >= 180) return 60;
-        else return 30;
-    }
-
-    public String getRingkasan() {
-        int skor = hitungSkor();
-        String keterangan = "";
-
-        if (skor == 100) {
-            keterangan = "Udah ideal, badan kamu dapet recovery yang baik.";
-        } else if (skor >= 80) {
-            keterangan = "Lumayan oke, tinggal dibenerin dikit.";
-        } else if (skor >= 60) {
-            keterangan = "Masih kurang, coba benerin waktu tidur lagi ya.";
-        } else {
-            keterangan = "Kurang banget, hayoo tidur berlebihan maupun kekurangan ga baik yaa.";
-        }
-
-        return jenis + " | " + durasi + " menit | Skor: " + skor + "\n " + keterangan;
-    }
-}
-```
-
 ### `SaranTidur.java`
 ```java
 public class SaranTidur {
@@ -217,80 +229,92 @@ public class SaranTidur {
 }
 ```
 
+### `Main.java`
+```java
+import java.util.Scanner;
+
+public class Main {
+    public static void main(String[] args) {
+        Scanner input = new Scanner(System.in);
+
+        System.out.print("Masukkan nama kamu: ");
+        String nama = input.nextLine();
+
+        User user = new User(nama);
+
+        for (int i = 1; i <= 3; i++) {
+            System.out.println("\nSesi ke-" + i);
+            System.out.println("Pilih jenis tidur:");
+            System.out.println("1. Tidur Siang");
+            System.out.println("2. Tidur Malam");
+            System.out.println("3. Tidur Nyantai");
+
+            System.out.print("Pilihan (1/2/3): ");
+            int pilihan = input.nextInt();
+            input.nextLine();
+
+            System.out.print("Durasi (menit): ");
+            int durasi = input.nextInt();
+            input.nextLine();
+
+            SesiTidur sesi;
+            if (pilihan == 1) sesi = new TidurSiang(durasi);
+            else if (pilihan == 2) sesi = new TidurMalam(durasi);
+            else if (pilihan == 3) sesi = new TidurNyantai(durasi);
+            else sesi = new TidurMalam(durasi);
+
+            user.tambahSesi(sesi);
+        }
+
+        System.out.println("\n=====================");
+        user.tampilkanLaporan();
+
+        System.out.println("\nRekomendasi:");
+        SaranTidur.beriSaran(user);
+
+        input.close();
+    }
+}
+```
+
 ---
 
 ## Screenshot Output
-Ouput Skor Lumayan
+*Output Skor Lumayan*
 
-```
-Masukkan nama kamu: Rifqi
 
-Sesi ke-1
-Pilih jenis tidur:
-1. Tidur Siang
-2. Tidur Malam
-3. Tidur Nyantai
-Pilihan (1/2/3): 2
-Durasi (menit): 480
+![Output](./assets/Output1.png)
 
-Sesi ke-2
-Pilih jenis tidur:
-1. Tidur Siang
-2. Tidur Malam
-3. Tidur Nyantai
-Pilihan (1/2/3): 3
-Durasi (menit): 20
 
-Sesi ke-3
-Pilih jenis tidur:
-1. Tidur Siang
-2. Tidur Malam
-3. Tidur Nyantai
-Pilihan (1/2/3): 1
-Durasi (menit): 90
+*Output Skor Jelek*
 
-=====================
-Laporan Tidur: Rifqi
-Tidur Malam | 480 menit | Skor: 100
- Udah ideal, badan kamu dapet recovery yang baik.
-Tidur Nyantai | 20 menit | Skor: 100
- Udah ideal, badan kamu dapet recovery yang baik.
-Tidur Siang | 90 menit | Skor: 30
- Kurang banget, hayoo tidur berlebihan maupun kekurangan ga baik yaa.
+![Output](./assets/Output2.png)
 
-Rekomendasi:
-Skor rata-rata: 76
-Lumayan oke, tapi masih bisa dibenerin dikit.
-```
 
 ---
 
 ## Prinsip-Prinsip OOP yang Diterapkan
 
 ### 1. Encapsulation
-Semua atribut di kelas `User` dan `SesiTidur` dideklarasikan sebagai `private`. Akses ke data dilakukan lewat method getter seperti `getDurasi()`, `getJenis()`, dan `getDaftarSesi()`. Ini mencegah data dimodifikasi langsung dari luar kelas.
+Semua atribut di kelas `User` dan `SesiTidur` dideklarasikan `private` atau `protected`. Akses ke data dilakukan lewat method getter seperti `getDurasi()`, `getJenis()`, dan `getDaftarSesi()`. Data tidak bisa dimodifikasi langsung dari luar kelas.
 
-### 2. Abstraction
-Kelas `SesiTidur` menyembunyikan detail logika penghitungan skor di dalam method `hitungSkor()`. Pemanggil (seperti `SaranTidur`) cukup tahu bahwa skor bisa didapat tanpa perlu tahu algoritma di dalamnya.
+### 2. Inheritance
+`TidurMalam`, `TidurSiang`, dan `TidurNyantai` mewarisi atribut `jenis`, `durasi`, dan method `getRingkasan()` dari abstract class `SesiTidur`. Tidak perlu menulis ulang logika yang sama di tiap subclass.
 
-### 3. Single Responsibility Principle
-Setiap kelas punya satu tanggung jawab yang jelas:
-- `User` → menyimpan dan menampilkan data pengguna
-- `SesiTidur` → menyimpan data satu sesi tidur dan mengevaluasinya
-- `SaranTidur` → khusus menganalisis dan memberi rekomendasi
-- `Main` → hanya mengatur alur input/output
+### 3. Polymorphism
+Ketiga subclass meng-override method `hitungSkor()` dengan standar penilaian masing-masing. Di `User` dan `SaranTidur`, semua sesi diperlakukan sebagai `SesiTidur` — tapi saat `hitungSkor()` dipanggil, Java otomatis menjalankan versi yang sesuai dengan tipe aslinya. Ini adalah runtime polymorphism.
 
-### 4. Object Composition
-`User` tidak mewarisi `SesiTidur`, tapi **memiliki** koleksi `SesiTidur` via `ArrayList`. Ini adalah pendekatan komposisi — hubungan *"has-a"* bukan *"is-a"*.
+### 4. Abstraction
+`SesiTidur` dideklarasikan sebagai `abstract class` dengan method abstrak `hitungSkor()`. Ini memaksa setiap subclass untuk mengimplementasikan logika skoringnya sendiri, sekaligus menyembunyikan detail implementasi dari pemanggil.
 
 ---
 
 ## Keunikan Program
 
-Program ini punya beberapa hal yang membedakannya:
+**Standar skor berbasis data nyata.** Ambang 420–540 menit (7–9 jam) adalah rekomendasi tidur orang dewasa yang punya dasar dari literatur kesehatan. Tidur santai(rehat sejenak) ideal 10–30 menit juga sama. Logika skoringnya bukan angka sembarang.
 
-**Domain yang tidak biasa.** Kebanyakan tugas OOP mengambil tema toko, perpustakaan, atau ATM. Sleep Tracker adalah domain yang dekat dengan kehidupan sehari-hari mahasiswa tapi hampir tidak pernah dijadikan studi kasus OOP.
+**Dua lapisan evaluasi.** Setiap sesi dapat feedback individual lewat `getRingkasan()`, lalu ada rekomendasi agregat dari `SaranTidur`. Bukan langsung loncat ke kesimpulan akhir.
 
-**Sistem skor yang sadar konteks.** Tidur Nyantai (power nap) punya standar penilaian yang berbeda dengan Tidur Malam atau Tidur Siang. Ini mencerminkan kondisi nyata — 20 menit power nap itu ideal, tapi 20 menit tidur malam jelas tidak cukup. Logika ini dikapsulasi rapi di dalam `hitungSkor()`.
+**Inheritance yang kontekstual.** Pemisahan `TidurMalam`, `TidurSiang`, `TidurNyantai` bukan sekadar biar ada inheritance — memang logika skoringnya beda. Power nap 20 menit itu ideal, tapi tidur malam 20 menit jelas tidak cukup. Struktur kelas mencerminkan perbedaan nyata ini.
 
-**Feedback yang conversational.** Keterangan yang muncul tidak kaku seperti "Status: BAIK". Pesannya ditulis dengan nada santai yang terasa seperti obrolan, bukan laporan medis.
+**`SaranTidur` sebagai static utility class.** Kelas ini tidak perlu diinstansiasi — murni utility. Ini pilihan desain yang disengaja, berbeda dari kebanyakan tugas yang cenderung membuat semua kelas menjadi objek.

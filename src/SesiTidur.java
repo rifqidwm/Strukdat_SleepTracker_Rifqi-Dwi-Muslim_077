@@ -1,6 +1,6 @@
-public class SesiTidur {
-    private String jenis;
-    private int durasi;
+public abstract class SesiTidur {
+    protected String jenis;
+    protected int durasi;
 
     public SesiTidur(String jenis, int durasi) {
         this.jenis = jenis;
@@ -15,20 +15,7 @@ public class SesiTidur {
         return jenis;
     }
 
-    public int hitungSkor() {
-        // khusus tidur nyantai (power nap)
-        if (jenis.equalsIgnoreCase("Tidur Nyantai")) {
-            if (durasi >= 10 && durasi <= 30) return 100;
-            else if (durasi <= 60) return 70;
-            else return 40;
-        }
-
-        // tidur malam & siang (pakai standar sehat)
-        if (durasi >= 420 && durasi <= 540) return 100;
-        else if (durasi >= 360) return 80;
-        else if (durasi >= 180) return 60;
-        else return 30;
-    }
+    public abstract int hitungSkor();
 
     public String getRingkasan() {
         int skor = hitungSkor();

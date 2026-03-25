@@ -11,7 +11,6 @@ public class Main {
 
         for (int i = 1; i <= 3; i++) {
             System.out.println("\nSesi ke-" + i);
-
             System.out.println("Pilih jenis tidur:");
             System.out.println("1. Tidur Siang");
             System.out.println("2. Tidur Malam");
@@ -19,19 +18,18 @@ public class Main {
 
             System.out.print("Pilihan (1/2/3): ");
             int pilihan = input.nextInt();
-            input.nextLine(); // buang enter
-
-            String jenis = "";
-            if (pilihan == 1) jenis = "Tidur Siang";
-            else if (pilihan == 2) jenis = "Tidur Malam";
-            else if (pilihan == 3) jenis = "Tidur Nyantai";
-            else jenis = "Tidak Diketahui";
+            input.nextLine();
 
             System.out.print("Durasi (menit): ");
             int durasi = input.nextInt();
             input.nextLine();
 
-            SesiTidur sesi = new SesiTidur(jenis, durasi);
+            SesiTidur sesi;
+            if (pilihan == 1) sesi = new TidurSiang(durasi);
+            else if (pilihan == 2) sesi = new TidurMalam(durasi);
+            else if (pilihan == 3) sesi = new TidurNyantai(durasi);
+            else sesi = new TidurMalam(durasi);
+
             user.tambahSesi(sesi);
         }
 

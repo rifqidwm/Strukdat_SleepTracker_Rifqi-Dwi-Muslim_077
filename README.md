@@ -283,12 +283,12 @@ public class Main {
 *Output Skor Lumayan*
 
 
-![Output](./assets/Output1.png)
+![Output](./assets/Output2.png)
 
 
 *Output Skor Jelek*
 
-![Output](./assets/Output2.png)
+![Output](./assets/Output1.png)
 
 
 ---
